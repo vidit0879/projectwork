@@ -76,6 +76,23 @@ def summarize_and_benchmark_esg(text):
     ]
     return ask_groq(messages)
 
+def ai_sustainability_assessment(material, weight, recyclable, renewable):
+    prompt = (
+        f"Packaging parameters:\n"
+        f"- Material: {material}\n"
+        f"- Weight: {weight} grams\n"
+        f"- Recyclable: {'Yes' if recyclable else 'No'}\n"
+        f"- Made from renewable resources: {'Yes' if renewable else 'No'}\n\n"
+        "Based on these, provide:\n"
+        "1. A sustainability score out of 10 (with justification).\n"
+        "2. A brief assessment and recommendations for improvement."
+    )
+    messages = [
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": prompt}
+    ]
+    return ask_groq(messages)
+
 def main():
     st.set_page_config(
         page_title="Sustainability Packaging Chatbot",
@@ -87,7 +104,7 @@ def main():
     st.markdown("Expert advice on LCA, ESG reporting, packaging sustainability, and materiality analysis")
     
     # Create tabs for different features
-    tab1, tab2 = st.tabs(["💬 Chat", "📄 ESG Report Analysis"])
+    tab1, tab2, tab3 = st.tabs(["💬 Chat", "📄 ESG Report Analysis", "♻️ AI Sustainability Score Calculator"])
     
     # Sidebar
     with st.sidebar:
@@ -181,6 +198,28 @@ def main():
                         st.error("Failed to analyze the ESG report. Please try again.")
                 else:
                     st.error("No text could be extracted from the PDF. Please check if the file is readable.")
+
+    # AI Sustainability Score Calculator Tab
+    with tab3:
+        st.header("♻️ AI Sustainability Score Calculator")
+        st.markdown("Input your packaging parameters to get an AI-powered sustainability score and assessment.")
+
+        material = st.selectbox(
+            "Material",
+            ["Plastic", "Glass", "Aluminum", "Paper", "Bioplastic", "Compostable", "Other"]
+        )
+        weight = st.number_input("Weight (grams)", min_value=0.0, step=0.1)
+        recyclable = st.radio("Is it recyclable?", ["Yes", "No"]) == "Yes"
+        renewable = st.radio("Is it made from renewable resources?", ["Yes", "No"]) == "Yes"
+
+        if st.button("Analyze with AI"):
+            with st.spinner("Analyzing with AI..."):
+                ai_result = ai_sustainability_assessment(material, weight, recyclable, renewable)
+            if ai_result:
+                st.subheader("🤖 AI Sustainability Assessment")
+                st.markdown(ai_result)
+            else:
+                st.error("Failed to get AI analysis. Please try again.")
 
 if __name__ == "__main__":
     main()
